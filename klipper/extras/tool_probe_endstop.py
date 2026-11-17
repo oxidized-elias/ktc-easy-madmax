@@ -4,9 +4,12 @@
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import inspect
+from . import manual_probe
 from . import probe
 
-if not all(hasattr(probe, attr) for attr in (
+from .kalico_compat.native_probe import has_native_probe_api
+
+if not has_native_probe_api(probe) and not all(hasattr(probe, attr) for attr in (
     'ProbeParameterHelper',
     'ProbeSessionHelper',
     'HomingViaProbeHelper',
@@ -90,7 +93,7 @@ class ToolProbeEndstop:
 
     # Support legacy Klipper versions where HomingViaProbeHelper calls this
     def create_probe_result(self, test_pos):
-        x_offset, y_offset, z_offset = self.tool_probe_endstop.get_offsets()
+        x_offset, y_offset, z_offset = self.get_offsets()
         return manual_probe.ProbeResult(
             test_pos[0]+x_offset, test_pos[1]+y_offset,
             test_pos[2]-z_offset, test_pos[0], test_pos[1], test_pos[2])
@@ -372,4 +375,7 @@ class EndstopRouter:
         return self.active_mcu.get_position_endstop()
 
 def load_config(config):
+    if has_native_probe_api(probe):
+        from .kalico_compat.native_probe import build_tool_endstop
+        return build_tool_endstop(config, probe, ToolProbeEndstop, EndstopRouter)
     return ToolProbeEndstop(config)

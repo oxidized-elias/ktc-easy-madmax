@@ -18,6 +18,7 @@ class ProbeBlindButton:
         self.toolhead         = None
         self._probe_session   = None
         self._probe_obj       = None
+        self._probe_list      = None
 
         self._busy            = 0
         self._latched         = False
@@ -38,15 +39,23 @@ class ProbeBlindButton:
     def _on_connect(self):
         self.toolhead = self.printer.lookup_object('toolhead')
         self._probe_obj = self.printer.lookup_object('probe', None)
+        self._probe_list = self.printer.lookup_object('probe_list', None)
         self._probe_session = getattr(self._probe_obj, 'probe_session', None) if self._probe_obj else None
 
     def _session_busy(self):
+        # Current Kalico can probe a named device other than the default probe.
+        if self._probe_list is not None:
+            if any(getattr(p, 'multi_probe_count', 0)
+                   for p in self._probe_list.get_all().values()):
+                return True
         ps = self._probe_session
         if ps and getattr(ps, 'hw_probe_session', None):
             return True
         prb = self._probe_obj
         if not prb:
             return False
+        if getattr(prb, 'multi_probe_count', 0):
+            return True
         if getattr(prb, 'multi_probe_pending', False):
             return True
         active = getattr(prb, 'active_probe', None)

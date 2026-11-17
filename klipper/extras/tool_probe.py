@@ -7,7 +7,9 @@ import logging
 from . import probe
 from . import manual_probe
 
-if not hasattr(probe, 'ProbeOffsetsHelper'):
+from .kalico_compat.native_probe import has_native_probe_api
+
+if not has_native_probe_api(probe) and not hasattr(probe, 'ProbeOffsetsHelper'):
     try:
         from .kalico_compat import ensure_probe_backports
     except ImportError:
@@ -191,4 +193,7 @@ class ProbeSessionHelper:
         return res
 
 def load_config_prefix(config):
+    if has_native_probe_api(probe):
+        from .kalico_compat.native_probe import build_tool_probe
+        return build_tool_probe(config, probe)
     return ToolProbe(config)

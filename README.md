@@ -4,8 +4,23 @@ Aimed to be **fully compatible** with the original `klipper-toolchanger`.
 Just offering more features, extras, and options to expand upon.  
 Basically, the "assortment of Klipper extensions" from viesturz, with the "assortment of Klipper extensions" from me.
 
+## MadMax (experimental)
+
+An opt-in XY-only profile for front/side-keyslot MadMax docks is available.
+Run `./install.sh --madmax` from this checkout, or choose MadMax in the interactive
+installer. Existing noninteractive installs remain extensions-only by default.
+See [installation, native detection and calibration](examples/madmax/README.md)
+and [troubleshooting](examples/madmax/TROUBLESHOOTING.md).
+The profile blocks docking until measured coordinates are configured and has not
+been validated on a physical printer.
+
 ## Kalico status
-* toolchanger, tool probes, calibration, rounded path, heater power distributor are all crosscompatible between kalico and klipper
+
+Current Kalico named-probe, context-aware session, retry/scrubbing and mesh-based
+compensation support is handled through a native adapter. See
+[verified versions, configuration and limits](docs/kalico-compatibility.md).
+
+* Toolchanger, tool probes, calibration, rounded path and heater power distributor include Klipper/Kalico compatibility paths; validation coverage and limits are documented above.
 * manual rail is untested and will likely break on kalico, neither did i test the other extras on kalico yet.
 
 ## Installation

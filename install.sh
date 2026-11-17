@@ -2,6 +2,14 @@
 
 KLIPPER_PATH="${HOME}/klipper"
 INSTALL_PATH="${HOME}/klipper-toolchanger"
+CONFIG_PATH="${HOME}/printer_data/config"
+# Use this checkout when run locally; preserve wget | bash download behavior.
+if [ -n "${BASH_SOURCE[0]:-}" ]; then
+    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [ -d "${script_dir}/klipper/extras" ]; then
+        INSTALL_PATH="$script_dir"
+    fi
+fi
 
 set -eu
 export LC_ALL=C
@@ -82,12 +90,65 @@ function restart_klipper {
     sudo systemctl restart klipper
 }
 
-printf "\n======================================\n"
-echo "- Klipper toolchanger install script -"
-printf "======================================\n\n"
+function profile_option {
+    profile=extensions
+    case "${1:-}" in
+        --madmax) profile=madmax ;;
+        --extensions-only) ;;
+        --help|-h)
+            echo "Usage: install.sh [--madmax|--extensions-only]"
+            echo "Without arguments: prompt in a terminal; install extensions only for piped input."
+            return 2 ;;
+        "")
+            if [ -t 0 ]; then
+                echo "1. Extensions only (keep your existing toolchanger configuration)"
+                echo "2. MadMax (experimental front/side-keyslot XY profile)"
+                read -rp "Select an option [1-2]: " profile_choice
+                case "$profile_choice" in
+                    1) ;;
+                    2) profile=madmax ;;
+                    *) echo "[ERROR] Invalid profile choice"; return 1 ;;
+                esac
+            fi ;;
+        *) echo "[ERROR] Unknown option: $1"; return 1 ;;
+    esac
+    if [ "$#" -gt 1 ]; then
+        echo "[ERROR] Supply only one profile option"; return 1
+    fi
+}
 
-# Run steps
-preflight_checks
-check_download
-link_extension
-restart_klipper
+function install_madmax {
+    local target="${CONFIG_PATH}/toolchanger"
+    mkdir -p "$target"
+    ln -sfn "${INSTALL_PATH}/examples/madmax/toolchanger.cfg" "$target/madmax.cfg"
+    ln -sfn "${INSTALL_PATH}/examples/madmax/madmax-include.cfg" "$target/madmax-include.cfg"
+    if [ ! -e "$target/madmax-user.cfg" ]; then
+        cp "${INSTALL_PATH}/examples/madmax/madmax-user.cfg" "$target/madmax-user.cfg"
+    fi
+    echo "[MADMAX] Installed profile; existing madmax-user.cfg was preserved."
+    echo "[MADMAX] Configure native detection_pin on every tool and measure dock coordinates."
+    echo "[MADMAX] Replace your old dock motion include with:"
+    echo "         [include toolchanger/madmax-include.cfg]"
+    echo "[MADMAX] Review homing/probing and examples/madmax/README.md before restarting."
+    echo "[MADMAX] Klipper was not restarted; docking stays blocked until calibrated."
+}
+
+function main {
+    local option_status=0
+    profile_option "$@" || option_status=$?
+    if [ "$option_status" -eq 2 ]; then return 0; fi
+    if [ "$option_status" -ne 0 ]; then return "$option_status"; fi
+    preflight_checks
+    check_download
+    link_extension
+    if [ "$profile" = madmax ]; then
+        install_madmax
+    else
+        restart_klipper
+    fi
+}
+
+# BASH_SOURCE is empty when the supported wget | bash installation is used.
+if [ "${BASH_SOURCE[0]:-}" = "$0" ] || [ -z "${BASH_SOURCE[0]:-}" ]; then
+    main "$@"
+fi

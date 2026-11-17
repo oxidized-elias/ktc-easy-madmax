@@ -4,6 +4,13 @@ The examples here are for specific toolchanger setups, and will likely need to b
 They are all for setups with multiple physical tools.  
 The extension code supports arbitrary tool setups, but this has been the most prolific use by far.
 
+## MadMax
+
+For front/side-keyslot XY docking, use the standalone
+[MadMax profile and setup guide](madmax/README.md). It replaces the dock-location
+motion profile rather than adding a lift-out path to one. Native tool detection
+is required; per-tool bed probing is optional.
+
 ## Important note
 
 For kalico and future klipper usage, i plan on deprecating tool_probe_endstop, the general plan is that toolchanger handles tool detection, this makes configs easier, setups cleaner, and the divergency between setups exponentially smaller.
