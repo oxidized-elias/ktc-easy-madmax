@@ -1,3 +1,13 @@
+# MadMax support development branch
+
+This fork adds an opt-in **experimental MadMax XY docking profile** to Easy Install.
+See [MadMax setup and calibration](examples/madmax/README.md).
+The profile is disabled until you enter measured dock coordinates and explicitly
+mark each tool calibrated. It has macro rendering tests, but has not been tested
+on a physical printer. Existing StealthChanger installations keep their defaults.
+
+---
+
 # klipper-toolchanger Easy Install
 
 # Requires Klipper 0.13.0-707 or greater

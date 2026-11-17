@@ -2,7 +2,8 @@
 
 KLIPPER_PATH="${HOME}/klipper"
 KLIPPY_ENV_PATH="${HOME}/klippy-env"
-INSTALL_PATH="${HOME}/klipper-toolchanger-easy"
+# Install this checkout, including forks and clones with a different directory name.
+INSTALL_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_PATH="${HOME}/printer_data/config"
 
 set -eu
@@ -19,25 +20,6 @@ function preflight_checks {
     else
         echo "[ERROR] Klipper service not found, please install Klipper first!"
         exit -1
-    fi
-}
-
-function check_download {
-    local installdirname installbasename
-    installdirname="$(dirname ${INSTALL_PATH})"
-    installbasename="$(basename ${INSTALL_PATH})"
-
-    if [ ! -d "${INSTALL_PATH}" ]; then
-        echo "[DOWNLOAD] Downloading repository..."
-        if git -C $installdirname clone https://github.com/jwellman80/klipper-toolchanger-easy.git $installbasename; then
-            chmod +x ${INSTALL_PATH}/install.sh
-            printf "[DOWNLOAD] Download complete!\n\n"
-        else
-            echo "[ERROR] Download of git repository failed!"
-            exit -1
-        fi
-    else
-        printf "[DOWNLOAD] repository already found locally. Continuing...\n\n"
     fi
 }
 
@@ -124,7 +106,6 @@ printf "======================================\n\n"
 
 # Run steps
 preflight_checks
-check_download
 install_requirements
 do_shared_config
 link_extension
