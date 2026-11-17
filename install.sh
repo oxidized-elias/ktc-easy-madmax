@@ -100,14 +100,49 @@ function restart_klipper {
     sudo systemctl restart klipper
 }
 
-printf "\n======================================\n"
-echo "- Klipper toolchanger install script -"
-printf "======================================\n\n"
+function toolchanger_option {
+    echo "Which toolchanger do you use?"
+    echo "1. StealthChanger (existing Easy Install paths)"
+    echo "2. MadMax (experimental XY docking, per-tool coupling probes)"
+    read -rp "Select an option [1-2]: " toolchanger_choice
+    case "$toolchanger_choice" in
+        1|2) ;;
+        *) echo "[ERROR] Invalid toolchanger option selected!"; return 1 ;;
+    esac
+}
 
-# Run steps
-preflight_checks
-install_requirements
-do_shared_config
-link_extension
-z_probe_option
-restart_klipper
+function use_madmax {
+    echo "[INSTALL] MadMax: using per-tool Maxwell coupling probes"
+    use_tap_per_tool
+    ln -sfn "${INSTALL_PATH}/examples/madmax/toolchanger.cfg" "${CONFIG_PATH}/toolchanger/readonly-configs/madmax.cfg"
+    ln -sfn "${INSTALL_PATH}/examples/madmax/toolchanger-include.cfg" "${CONFIG_PATH}/toolchanger/readonly-configs/toolchanger-include.cfg"
+    # Never overwrite measured coordinates on a subsequent installation.
+    if [ ! -e "${CONFIG_PATH}/toolchanger/madmax-user.cfg" ]; then
+        cp "${INSTALL_PATH}/examples/madmax/madmax-user.cfg" "${CONFIG_PATH}/toolchanger/madmax-user.cfg"
+    fi
+    echo "[MADMAX] Profile installed. Configure tools and toolchanger/madmax-user.cfg."
+    echo "[MADMAX] Use only [include toolchanger/readonly-configs/toolchanger-include.cfg] in printer.cfg."
+    echo "[MADMAX] Remove any older manual MadMax includes to avoid duplicate sections."
+    echo "[MADMAX] Docking is blocked until each tool is marked calibrated."
+    echo "[MADMAX] Klipper was not restarted. Review homing and configs, then restart manually."
+}
+
+function main {
+    printf "\n- Klipper toolchanger install script -\n\n"
+    preflight_checks
+    # Choose before changing any installed configuration.
+    toolchanger_option
+    install_requirements
+    do_shared_config
+    link_extension
+    if [ "$toolchanger_choice" = 2 ]; then
+        use_madmax
+    else
+        z_probe_option
+        restart_klipper
+    fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

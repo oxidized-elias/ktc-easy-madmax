@@ -1,7 +1,10 @@
 # MadMax support development branch
 
 This fork adds an opt-in **experimental MadMax XY docking profile** to Easy Install.
-See [MadMax setup and calibration](examples/madmax/README.md).
+Run `./install.sh` and select **2. MadMax** to opt in.
+See [MadMax setup and calibration](examples/madmax/README.md),
+[the commissioning guide](examples/madmax/COMMISSIONING.md), and
+[troubleshooting](examples/madmax/TROUBLESHOOTING.md).
 The profile is disabled until you enter measured dock coordinates and explicitly
 mark each tool calibrated. It has macro rendering tests, but has not been tested
 on a physical printer. Existing StealthChanger installations keep their defaults.
@@ -35,7 +38,7 @@ This script does the following:
 Running `install.sh` multiple times is a safe opearation, provided you follow the instructions below about configuration.
 ```
 cd ~/
-git clone https://github.com/jwellman80/klipper-toolchanger-easy.git
+git clone https://github.com/oxidized-elias/ktc-easy-madmax.git klipper-toolchanger-easy
 cd ~/klipper-toolchanger-easy
 ./install.sh
 ```
@@ -51,7 +54,7 @@ Optional, but recommended, add the following to your `moonraker.conf` to enable 
 type: git_repo
 channel: dev
 path: ~/klipper-toolchanger-easy
-origin: https://github.com/jwellman80/klipper-toolchanger-easy.git
+origin: https://github.com/oxidized-elias/ktc-easy-madmax.git
 managed_services: klipper
 primary_branch: main
 ```

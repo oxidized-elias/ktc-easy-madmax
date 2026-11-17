@@ -9,26 +9,29 @@ not a claim of printer-tested support.
 
 ## Install
 
-1. Clone this fork/branch on the printer, then run `./install.sh` **from that checkout**.
-   The installer now links the checkout it was run from. Use the per-tool TAP option:
-   MadMax's Maxwell coupling contacts serve as per-tool probes. A shuttle scanner
-   without coupling detection is not supported by this initial profile.
+1. Clone this fork on the printer and run `./install.sh` from that checkout.
+   Select **2. MadMax** at the toolchanger prompt. The installer selects per-tool
+   Maxwell coupling probes, links the MadMax profile, and creates a user-owned
+   `toolchanger/madmax-user.cfg` without overwriting an existing one. A shuttle
+   scanner without coupling detection is not supported by this initial profile.
+   Klipper is not automatically restarted for MadMax; complete configuration first.
 2. Configure real toolboards, extruders, fans, and `[tool_probe T0]` / `[tool_probe T1]`
    sections using the Easy Install examples. Replace every sample pin and CAN UUID.
    Test contacts: attached and seated must be untriggered, detached or lifted must
    be triggered. Do not configure the same pin twice for probe and detection.
-3. Copy this directory's `toolchanger.cfg` to
-   `~/printer_data/config/toolchanger/madmax.cfg`. Add to `printer.cfg` in this order:
+3. Add just this include to `printer.cfg`:
 
    ```ini
    [include toolchanger/readonly-configs/toolchanger-include.cfg]
-   [include toolchanger/madmax.cfg]
-   [include toolchanger/madmax-user.cfg]
    ```
 
-   Create `madmax-user.cfg` using the template below. It is user-owned and is not
-   overwritten by installation. The last two includes must follow Easy Install's
-   overrides so the StealthChanger paths cannot replace the MadMax profile.
+   The installer-selected include loads the shared config, ordinary user overrides,
+   MadMax profile, and finally `madmax-user.cfg` in that order. If migrating from
+   manual setup, remove the separate `toolchanger/madmax.cfg` and
+   `toolchanger/madmax-user.cfg` includes from `printer.cfg`; keep your calibration
+   file. Do not edit files in `readonly-configs`. To switch back to StealthChanger,
+   rerun the installer and select option 1; the MadMax calibration file is preserved
+   but no longer included.
 4. Review homing, mesh, leveling and print macros for your printer. Keep an attached
    tool for initialization. Homing must reach a safe Y before sweeping X past docks.
    The bundled homing macro assumes rear Y homing; front homing needs a custom
@@ -99,7 +102,18 @@ bash -n install.sh
 ```
 
 Tests render the actual config with Klipper's Jinja delimiters and exercise
-clearance ordering, both dock sides, restoration, and calibration guards. They
-do not simulate Klipper motion planning, probe hardware or physical collisions.
-Use this fork's URL and branch in Moonraker's update manager; the upstream URL
-in the original README would switch updates back to StealthChanger defaults.
+clearance ordering, both dock sides, restoration, and calibration guards. Installer
+tests use temporary config trees to check profile selection, include order,
+calibration preservation, and switching back to StealthChanger. They do not
+simulate Klipper motion planning, probe hardware or physical collisions.
+Use this fork's URL and branch in Moonraker's update manager to retain MadMax updates.
+
+## Detailed guides
+
+- [Installation, parameters, and commissioning](COMMISSIONING.md): supported hardware,
+  installed files, coordinate worksheet, staged docking tests, and first prints.
+- [Troubleshooting and maintenance](TROUBLESHOOTING.md): detection faults, guard
+  messages, temperature waits, migration, and reporting hardware results.
+- [Per-tool probing reference](../../tool_probe.md) and
+  [offset calibration reference](../../tools_calibrate.md) describe the underlying
+  extension APIs used by this profile.
