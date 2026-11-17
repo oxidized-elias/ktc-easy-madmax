@@ -31,10 +31,15 @@ accelerometer drop detection, liftbars or third-party offset calibration macros.
 
 ## Installation
 
-Run the local checkout that contains these changes:
+This KTC-Hard implementation lives on the `ktc-hard-madmax` branch of
+[oxidized-elias/ktc-easy-madmax](https://github.com/oxidized-elias/ktc-easy-madmax/tree/ktc-hard-madmax).
+The repository's `main` branch contains the separate Easy Install implementation.
+Clone this branch explicitly into its own directory:
 
 ```sh
-cd /path/to/klipper-toolchanger-hard
+cd ~
+git clone --branch ktc-hard-madmax --single-branch https://github.com/oxidized-elias/ktc-easy-madmax.git ktc-hard-madmax
+cd ~/ktc-hard-madmax
 ./install.sh --madmax
 ```
 
@@ -44,11 +49,10 @@ behavior unless `--madmax` is explicitly supplied. `--extensions-only` explicitl
 chooses the original behavior, and `--help` describes the options.
 
 The script uses its own checkout for local execution, including renamed clones.
-The existing streamed `wget ... | bash` installation still downloads to the
-original default location. Run from your modified checkout to install these local
-changes; fetching an unchanged upstream script cannot install an unpublished profile.
-The secondary-only installer deliberately remains unchanged and does not install
-or replace toolchanger support.
+Always run this branch's local script: the streamed upstream installer and the
+secondary-only installer retain upstream download behavior and do not select this
+branch. For updates, use the [Moonraker entry in the root README](../../README.md#moonraker-updates)
+with `primary_branch: ktc-hard-madmax` and your actual clone directory.
 
 The MadMax option symlinks the normal Python extensions and creates these files
 under `~/printer_data/config/toolchanger/`:

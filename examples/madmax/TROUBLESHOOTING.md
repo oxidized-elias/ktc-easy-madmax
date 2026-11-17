@@ -5,7 +5,7 @@ Start with [the setup guide](README.md) and
 
 | Symptom | Checks |
 | --- | --- |
-| No MadMax installer option | Run this changed checkout's `install.sh --madmax`; an unchanged upstream script does not contain unpublished changes |
+| No MadMax installer option | Run this changed checkout's `install.sh --madmax`; verify `git branch --show-current` reports `ktc-hard-madmax` and the remote points to `oxidized-elias/ktc-easy-madmax` |
 | `calibrate all dock coordinates` | Measure the named tool and explicitly enable its calibration flag |
 | Missing/out-of-range coordinate | Replace `None`; verify docking coordinates and configured X/Y travel; do not expand travel merely to silence the guard |
 | Wrong Y ordering | Confirm front-dock orientation and every tool's Y overrides |
@@ -71,3 +71,19 @@ whether chamber temperature or umbilical movement affects it.
 The software tests are useful for macro and installer behavior. Physical seating,
 contact repeatability, print clearance and dock reliability still need testing on
 the actual printer.
+
+## Branch and update checks
+
+Inside the installed checkout, inspect:
+
+```sh
+git remote -v
+git branch --show-current
+git log -1 --oneline
+```
+
+For this implementation the branch must be `ktc-hard-madmax`; `main` in the same
+repository is Easy Install. Set Moonraker's `primary_branch` accordingly. If you
+installed the wrong branch, keep a configuration backup and clone the intended
+branch into a separate directory before changing extension symlinks. Do not
+blindly switch an active installation between implementations.

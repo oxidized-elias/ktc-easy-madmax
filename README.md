@@ -1,8 +1,17 @@
-# klipper-toolchanger-hard
+# KTC-Hard MadMax — `ktc-hard-madmax` branch
 
-Aimed to be **fully compatible** with the original `klipper-toolchanger`.  
-Just offering more features, extras, and options to expand upon.  
-Basically, the "assortment of Klipper extensions" from viesturz, with the "assortment of Klipper extensions" from me.
+This branch adapts [Contomo/klipper-toolchanger-hard](https://github.com/Contomo/klipper-toolchanger-hard)
+for MadMax, with current Kalico probing compatibility fixes. It lives in
+[oxidized-elias/ktc-easy-madmax](https://github.com/oxidized-elias/ktc-easy-madmax/tree/ktc-hard-madmax).
+
+| Branch in this repository | Implementation |
+| --- | --- |
+| `main` | The separate Easy Install MadMax implementation |
+| `ktc-hard-madmax` | This KTC-Hard implementation, using native tool detection |
+
+Use `ktc-hard-madmax` when cloning or configuring updates for this version.
+The configurations and installers on the two branches are different; do not
+switch an installed printer between them without a configuration migration.
 
 ## MadMax (experimental)
 
@@ -25,17 +34,48 @@ compensation support is handled through a native adapter. See
 
 ## Installation
 
-To install this plugin, run the installation script using the following command over SSH. This script will download this GitHub repository to your RaspberryPi home directory, and symlink the files in the Klipper extra folder.
+Clone the named branch into a separate directory over SSH on the printer:
 
-```commandline
-wget -O - https://raw.githubusercontent.com/Contomo/klipper-toolchanger-hard/main/install.sh | bash
+```sh
+cd ~
+git clone --branch ktc-hard-madmax --single-branch https://github.com/oxidized-elias/ktc-easy-madmax.git ktc-hard-madmax
+cd ~/ktc-hard-madmax
+./install.sh --madmax
 ```
-Add the [macros.cfg](/macros.cfg) to your printer config.
 
-**if you are already using another klipper toolchanger and want to use the other extras this repo contains without paving over the other toolchanger**
-```commandline
-wget -O - https://raw.githubusercontent.com/Contomo/klipper-toolchanger-hard/main/install-only-secondary.sh | bash
+Follow the [MadMax setup guide](examples/madmax/README.md) to configure real
+hardware, native detection, homing and dock measurements before restarting
+Klipper. The installer preserves `madmax-user.cfg` and does not restart Klipper
+for MadMax. It does not edit `printer.cfg`.
+
+Run the script from this clone. The upstream `wget ... | bash` command installs
+upstream KTC-Hard, not this branch. The streamed fallback and secondary-only
+installer retain upstream download behavior and are not the installation path
+for this MadMax branch. `./install.sh --extensions-only` installs this checkout's
+full set of extensions without adding a motion profile; it can replace another
+toolchanger's Python links, so use it only when that is intended.
+
+Optional [example temperature/slicer macros](examples/macros.cfg) are available;
+review them for conflicts with existing macros before including them.
+
+### Moonraker updates
+
+Add to `moonraker.conf`, using your actual clone path if it differs:
+
+```ini
+[update_manager ktc-hard-madmax]
+type: git_repo
+channel: dev
+path: ~/ktc-hard-madmax
+origin: https://github.com/oxidized-elias/ktc-easy-madmax.git
+primary_branch: ktc-hard-madmax
+managed_services: klipper
 ```
+
+Use one update-manager entry per checkout. Do not set `primary_branch: main` for
+this installation; that is the Easy Install implementation. Back up editable
+printer configuration before updating. Rerun `./install.sh --madmax` when new
+Python extensions or symlinks are added, then review and restart manually.
 
 ## Changelog
 
@@ -51,7 +91,7 @@ Note that if an update has new `klipper/extra` files, they **will not** be autom
 You will need to run the intall script manualy to add them:
 
 ```commandline
-bash ~/klipper-toolchanger/install.sh
+bash ~/ktc-hard-madmax/install.sh --madmax
 ```
 
 ## Main-Components
@@ -69,67 +109,20 @@ bash ~/klipper-toolchanger/install.sh
 * [Tool drop detection](docs/tool_drop_detection.md) - continous polling of accelerometers, with peak/angle detection (tool dropped)
 * [Heater chamber fan](docs/heater_chamber_fan.md) - like a temperature_fan but it heats. automated chamber filter fan using bed as heater.
 
-## Migrating from KTC-Easy to KTC-H
+## Migrating from KTC-Easy or upstream KTC-Hard
 
-Download & Save a backup of your current configuration.   
+Back up your printer config, tool definitions and calibration files before changing
+implementations. Clone this branch into its own directory using the command above;
+keep the old checkout available until migration has been tested.
 
-Uninstall KTC-E and install KTC-H.  
-```commandline
-sudo rm -r ~/klipper-toolchanger-easy
-```
-```commandline
-wget -O - https://raw.githubusercontent.com/Contomo/klipper-toolchanger-hard/main/install.sh | bash
-```
+Keep real hardware sections, but replace the old dock-motion include with
+`[include toolchanger/madmax-include.cfg]`. Remove Easy Install's renamed
+initialization/verification wrappers and any per-tool lift-out motion overrides.
+Configure native `detection_pin` on every tool and merge measured MadMax geometry
+into `toolchanger/madmax-user.cfg` using the new parameter names. Do not copy an
+entire Easy Install configuration over this branch's native detection profile.
 
-
-In Mainsail, delete everything in the toolchanger folder. Don't delete any Tool configs and toolchanger-config.cfg if those happen to be in here.   
-Restore the readonly-configs from the KTC-E GitHub by putting them in the toolchanger folder.   
-You can find them here:
-```commandline
-https://github.com/jwellman80/klipper-toolchanger-easy/tree/main/examples/easy-additions
-```
-from /user-configs, ONLY download toolchanger-include.cfg for TAP setups. toolchanger-include_scanner.cfg for scanners. 
-```commandline
-https://github.com/jwellman80/klipper-toolchanger-easy/tree/main/examples/easy-additions/user-configs
-```
-
-Set up your files like so:
-```commandline
-├── toolchanger/
-│   ├── homing.cfg				 	 # from easy-additions folder
-│   ├── tool_detection.cfg     	 # for TAP install
-│   ├── toolchanger.cfg
-│   ├── toolchanger-macros.cfg
-│   ├── calibrate-offsets.cfg
-│   ├── crash-detection.cfg
-│   └── toolchanger-include.cfg
-├── tools/                   	 # Tool-specific configurations
-│   ├── T0.cfg          			 # More tools as needed
-│   └── T1.cfg
-└── toolchanger-config.cfg		 # User-editable overrides
-└── printer.cfg      				 # your other CFGs are also here 
-```
-
-
-Edit the toolchanger-include.cfg to include your tools, for example: 
-```commandline
-[include ../tools/T0.cfg]
-[include ../tools/T1.cfg]
-```
-
-Now your toolchanger-include.cfg will include all of the .cfgs :)
-
-
-Edit your include in printer.cfg:  
-FROM: 
-```commandline
-[include toolchanger/readonly-configs/toolchanger-include.cfg]
-```
-TO:   
-```commandline
-[include toolchanger/toolchanger-include.cfg]
-```
-
-In tool_detection.cfg, comment out the macros INITIALIZE_TOOLCHANGER, _INITIALIZE_FROM_DETECTED_TOOL, _INITIALIZE_FROM_DETECTED_TOOL_IMPL, VERIFY_TOOL_DETECTED.  
-
-All done! :)
+Read the [migration and troubleshooting guide](examples/madmax/TROUBLESHOOTING.md)
+and [Kalico compatibility notes](docs/kalico-compatibility.md), then commission
+homing, detection and docking before printing. Do not delete the old installation
+or calibration backups as part of the initial migration.
